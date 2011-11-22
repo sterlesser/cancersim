@@ -1,0 +1,776 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>code.cancer &mdash; CancerSim v0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="CancerSim v0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../../index.html">CancerSim v0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for code.cancer</h1><div class="highlight"><pre>
+<span class="c">#Cancer Sim</span>
+
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">pylab</span> <span class="kn">as</span> <span class="nn">py</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">euclidean</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="nb">pow</span>
+
+
+<span class="n">XSIZE</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">YSIZE</span> <span class="o">=</span> <span class="mi">20</span>
+
+<div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../cancer.html#code.cancer.norm">[docs]</a><span class="k">def</span> <span class="nf">norm</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Normalize a vector &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vec</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="unitize"><a class="viewcode-back" href="../../cancer.html#code.cancer.unitize">[docs]</a><span class="k">def</span> <span class="nf">unitize</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Construct a unit vector from a vector &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">vec</span><span class="o">/</span><span class="n">norm</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CellType"><a class="viewcode-back" href="../../cancer.html#code.cancer.CellType">[docs]</a><span class="k">class</span> <span class="nc">CellType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A holder for some cell type information &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">type_ind</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;b&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_ind</span> <span class="o">=</span> <span class="n">type_ind</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">L</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;CellType: {0.name}, type_ind={0.type_ind}, k={0.k}, L={0.L}&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.Cell">[docs]</a><span class="k">class</span> <span class="nc">Cell</span><span class="p">(</span><span class="n">CellType</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A cell object</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes:</span>
+<span class="sd">            pos: a position array</span>
+<span class="sd">            type: a type declaration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">cell_type</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">cell_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Cell type:{0.type.name} pos:{0.pos} ID:{1}&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="GhostCell"><a class="viewcode-back" href="../../cancer.html#code.cancer.GhostCell">[docs]</a><span class="k">class</span> <span class="nc">GhostCell</span><span class="p">(</span><span class="n">Cell</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A ghost cell &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">original</span><span class="p">,</span><span class="n">sign</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">xsize</span><span class="o">=</span><span class="n">XSIZE</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">sign</span><span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">XSIZE</span><span class="p">,</span><span class="mf">0.</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sign</span> <span class="o">=</span> <span class="n">sign</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original</span> <span class="o">=</span> <span class="n">original</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vel</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">vel</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original</span><span class="o">.</span><span class="n">pos</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span>
+<div class="viewcode-block" id="GhostCell.update"><a class="viewcode-back" href="../../cancer.html#code.cancer.GhostCell.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original</span><span class="o">.</span><span class="n">pos</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;GhostCell: pos:{0.pos} of cell {0.original}&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Link"><a class="viewcode-back" href="../../cancer.html#code.cancer.Link">[docs]</a><span class="k">class</span> <span class="nc">Link</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A link object keeps a link between two cells.</span>
+<span class="sd">    </span>
+<span class="sd">        Link(cell_one,cell_two,length,k)</span>
+
+<span class="sd">        Properties:</span>
+<span class="sd">            disp - displacement of spring</span>
+<span class="sd">            extension - compute the current link extension</span>
+<span class="sd">            energy - compute the current link energy</span>
+<span class="sd">            force - force of spring</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">xsize</span><span class="o">=</span><span class="n">XSIZE</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">one</span> <span class="o">=</span> <span class="n">one</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">two</span> <span class="o">=</span> <span class="n">two</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsize</span><span class="o">=</span><span class="n">xsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">xsize</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">L</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">L</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">L</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">L</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">k</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_disp</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_force</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Link: k={0.k}, L={0.L}, betwixt:{0.one},{0.two}&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">calculation_necessary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">disp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_disp</span> <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Link.disp"><a class="viewcode-back" href="../../cancer.html#code.cancer.Link.disp">[docs]</a>    <span class="k">def</span> <span class="nf">disp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Displacement from one to two &quot;&quot;&quot;</span>
+        <span class="n">direct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">pos</span>
+        <span class="n">around</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">pos</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">if</span> <span class="n">norm</span><span class="p">(</span><span class="n">direct</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">norm</span><span class="p">(</span><span class="n">around</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">direct</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">around</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Link.extension"><a class="viewcode-back" href="../../cancer.html#code.cancer.Link.extension">[docs]</a>    <span class="k">def</span> <span class="nf">extension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the current extension of the link &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disp</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Link.energy"><a class="viewcode-back" href="../../cancer.html#code.cancer.Link.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the energy stored in a link &quot;&quot;&quot;</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extension</span>
+        <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="nb">pow</span><span class="p">(</span><span class="n">ext</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">L</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Link.force"><a class="viewcode-back" href="../../cancer.html#code.cancer.Link.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the force from one to two &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculation_necessary</span><span class="p">:</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extension</span>
+            <span class="n">disp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">disp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_disp</span> <span class="o">=</span> <span class="n">disp</span>
+            <span class="n">force</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="p">(</span> <span class="n">ext</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="p">)</span> <span class="o">*</span> <span class="n">unitize</span><span class="p">(</span><span class="n">disp</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_force</span> <span class="o">=</span> <span class="n">force</span>
+            <span class="k">return</span> <span class="n">force</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_force</span>
+
+
+</div></div>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+
+<div class="viewcode-block" id="Links"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links">[docs]</a><span class="k">class</span> <span class="nc">Links</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Container for Links, data holds links,</span>
+<span class="sd">             and neighbors holds neighbors</span>
+<span class="sd">             </span>
+<span class="sd">        Methods:</span>
+<span class="sd">            add_link(one,two,k=None,L=None):</span>
+<span class="sd">                 adds a link between one and two</span>
+<span class="sd">                 by default, k and L are average of cell.type vals</span>
+<span class="sd">            remove_link(one,two): removes links between one and two</span>
+<span class="sd">            remove_cell(cell): remove a cell and all it&#39;s links</span>
+<span class="sd">            get_link(one,two): get link between one and two</span>
+<span class="sd">            get_neighbors(cell): get a set of all cells connected to</span>
+<span class="sd">                cell</span>
+<span class="sd">            iteritems(): iteritems the links</span>
+<span class="sd">            __iter__(): iters on the links</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c">#where links go. </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span> 
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Links: has {} links betwixt {} cells&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span>
+                                                            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">ord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="Links.add_link"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links.add_link">[docs]</a>    <span class="k">def</span> <span class="nf">add_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ord</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Link</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">one</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">two</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Links.remove_link"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links.remove_link">[docs]</a>    <span class="k">def</span> <span class="nf">remove_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ord</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">one</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">two</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">two</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">one</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Links.remove_cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links.remove_cell">[docs]</a>    <span class="k">def</span> <span class="nf">remove_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cell</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">neigh</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">cell</span><span class="p">]:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ord</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="n">neigh</span><span class="p">)]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="Links.get_link"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links.get_link">[docs]</a>    <span class="k">def</span> <span class="nf">get_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ord</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)]</span>
+        </div>
+<div class="viewcode-block" id="Links.get_neighbors"><a class="viewcode-back" href="../../cancer.html#code.cancer.Links.get_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">get_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cell</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span>
+</div>
+    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">elem</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span><span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">one</span><span class="p">,</span><span class="n">two</span> <span class="o">=</span> <span class="n">elem</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_link</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">elem</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span><span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">one</span><span class="p">,</span><span class="n">two</span> <span class="o">=</span> <span class="n">elem</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_link</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove_cell</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+    <span class="c">#try to do __getitem__, __setitem__, __delitem__</span>
+
+</div>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="CancerSim"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim">[docs]</a><span class="k">class</span> <span class="nc">CancerSim</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">boxsize</span><span class="o">=</span><span class="p">(</span><span class="n">XSIZE</span><span class="p">,</span><span class="n">YSIZE</span><span class="p">),</span><span class="n">basal_height</span> <span class="o">=</span> <span class="mf">10.</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">xi</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">a</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize the simulation &quot;&quot;&quot;</span>
+
+        <span class="c">#set seed</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+        <span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+        <span class="c">#input params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxsize</span> <span class="o">=</span> <span class="n">boxsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XSIZE</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">YSIZE</span> <span class="o">=</span> <span class="n">boxsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basal_height</span> <span class="o">=</span> <span class="n">basal_height</span>
+
+        <span class="c">#KDTree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kdtree</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updated</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># cell types (should be arguments)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancer</span> <span class="o">=</span> <span class="n">CellType</span><span class="p">(</span><span class="s">&#39;Cancer&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;y&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epidermal</span> <span class="o">=</span> <span class="n">CellType</span><span class="p">(</span><span class="s">&#39;Epidermal&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;b&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basal</span> <span class="o">=</span> <span class="n">CellType</span><span class="p">(</span><span class="s">&#39;Basal&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dermal</span> <span class="o">=</span> <span class="n">CellType</span><span class="p">(</span><span class="s">&#39;Dermal&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># containers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">links</span> <span class="o">=</span> <span class="n">Links</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cell_arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cells</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ghost_offset</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">boxsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mf">0.</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancer_cells</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+
+
+    <span class="k">def</span> <span class="nf">_triang_lattice</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a triangular grid of points &quot;&quot;&quot;</span>
+        <span class="n">XSIZE</span><span class="p">,</span> <span class="n">YSIZE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxsize</span>
+
+        <span class="c">#setup the epicells</span>
+        <span class="n">epispacing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epidermal</span><span class="o">.</span><span class="n">L</span>
+        <span class="n">xspace</span><span class="p">,</span><span class="n">yspace</span> <span class="o">=</span> <span class="n">epispacing</span> <span class="p">,</span> <span class="n">epispacing</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">,</span><span class="n">xspace</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basal_height</span><span class="p">,</span><span class="n">YSIZE</span><span class="p">,</span><span class="n">yspace</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">ind</span><span class="p">:</span>
+                    <span class="n">cell1</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">([</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">epidermal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">cell1</span><span class="p">)</span>
+                <span class="n">cell2</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">([</span><span class="n">i</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">xspace</span><span class="p">,</span><span class="n">j</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">yspace</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">epidermal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">cell2</span><span class="p">)</span>
+
+                <span class="c">#add ghosts for first few layers</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ind</span><span class="p">:</span>
+                        <span class="n">ghost1</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost1</span><span class="p">)</span>
+                    <span class="n">ghost2</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost2</span><span class="p">)</span>
+
+                <span class="c">#add ghosts for last few layers</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="p">(</span><span class="n">XSIZE</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">ind</span><span class="p">:</span>
+                        <span class="n">ghost1</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost1</span><span class="p">)</span>
+                    <span class="n">ghost2</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost2</span><span class="p">)</span>
+
+        <span class="c">#setup the bottom cells</span>
+        <span class="n">dermalspacing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dermal</span><span class="o">.</span><span class="n">L</span>
+        <span class="n">xspace</span><span class="p">,</span><span class="n">yspace</span> <span class="o">=</span> <span class="n">dermalspacing</span> <span class="p">,</span> <span class="n">dermalspacing</span><span class="o">*</span><span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">,</span><span class="n">xspace</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">basal_height</span><span class="o">*</span><span class="mf">0.9</span><span class="p">,</span><span class="n">yspace</span><span class="p">):</span>
+                <span class="n">cell1</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">([</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">dermal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">cell1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">j</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">yspace</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">basal_height</span><span class="p">:</span>
+                    <span class="n">cell2</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">([</span><span class="n">i</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">xspace</span><span class="p">,</span><span class="n">j</span><span class="o">+</span><span class="mf">0.5</span><span class="o">*</span><span class="n">yspace</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">dermal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">cell2</span><span class="p">)</span>
+
+                <span class="c">#add ghosts for first few layers</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">:</span>
+                    <span class="n">ghost1</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell1</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="n">ghost2</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ghost1</span><span class="p">,</span><span class="n">ghost2</span><span class="p">])</span>
+
+                <span class="c">#add ghosts for last few layers</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="p">(</span><span class="n">XSIZE</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">):</span>
+                    <span class="n">ghost1</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="n">ghost2</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ghost1</span><span class="p">,</span><span class="n">ghost2</span><span class="p">])</span>
+
+        <span class="c">#setup the middle cells</span>
+        <span class="n">basalspacing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basal</span><span class="o">.</span><span class="n">L</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">,</span><span class="n">basalspacing</span><span class="p">):</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">([</span><span class="n">i</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">basal_height</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">basal</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">:</span>
+                <span class="n">ghost</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="p">(</span><span class="n">XSIZE</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghost_cutoff</span><span class="p">):</span>
+                <span class="n">ghost</span> <span class="o">=</span> <span class="n">GhostCell</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">XSIZE</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ghost</span><span class="p">)</span>
+
+
+    
+<div class="viewcode-block" id="CancerSim.get_pos_arr"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.get_pos_arr">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="c">#if self._updated is False or force:</span>
+        <span class="c">#    return self._cell_arr</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cell_arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cell_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">pos</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updated</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell_arr</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_kdtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_arr</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kdtree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdtree</span>
+
+    <span class="k">def</span> <span class="nf">_query_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">eps</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get all of the cell inds near point, with radius r &quot;&quot;&quot;</span>        
+        <span class="n">kdtree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kdtree</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">eps</span><span class="p">:</span>
+            <span class="n">cell_inds</span> <span class="o">=</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">eps</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cell_inds</span> <span class="o">=</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">cell_inds</span> <span class="p">]</span>
+        <span class="k">return</span> <span class="n">cells</span>
+
+    <span class="k">def</span> <span class="nf">_get_vel_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vel_arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">):</span>
+            <span class="n">vel_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">vel</span>
+        <span class="k">return</span> <span class="n">vel_arr</span>
+
+    <span class="k">def</span> <span class="nf">_update_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pos_arr</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pos_arr</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">):</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cell_arr</span> <span class="o">=</span> <span class="n">pos_arr</span>
+
+    <span class="k">def</span> <span class="nf">_update_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vel_arr</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">vel</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vel_arr</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">):</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">vel</span> <span class="o">=</span> <span class="n">vel</span>
+        
+    <span class="k">def</span> <span class="nf">_get_ghost_pos_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="p">):</span>
+            <span class="n">arr</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="k">def</span> <span class="nf">_update_ghosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ghost</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="p">:</span>
+            <span class="n">ghost</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CancerSim.jiggle"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.jiggle">[docs]</a>    <span class="k">def</span> <span class="nf">jiggle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">ghosts</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Jiggle the atom positions &quot;&quot;&quot;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_arr</span><span class="p">()</span>
+
+        <span class="n">sigarr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cell</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">L</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">])</span>
+        <span class="n">randn</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">newpos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">sigma</span><span class="o">*</span><span class="p">(</span><span class="n">sigarr</span><span class="o">*</span><span class="n">randn</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pos</span><span class="p">(</span><span class="n">newpos</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ghosts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_ghosts</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_freeze_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="p">:</span>
+            <span class="n">link</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">extension</span>
+
+    <span class="k">def</span> <span class="nf">_filter_ghosts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">GhostCell</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">two</span><span class="p">,</span><span class="n">GhostCell</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;DoubleGhost&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">GhostCell</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">one</span><span class="o">.</span><span class="n">original</span><span class="p">,</span><span class="n">two</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">two</span><span class="p">,</span><span class="n">GhostCell</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="o">.</span><span class="n">original</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">one</span><span class="p">,</span><span class="n">two</span>
+
+
+    <span class="k">def</span> <span class="nf">_clear_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">links</span> <span class="o">=</span> <span class="n">Links</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CancerSim.delaunay"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.delaunay">[docs]</a>    <span class="k">def</span> <span class="nf">delaunay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; delaunay routine &quot;&quot;&quot;</span>
+
+        <span class="c">#first get the positions of all the cells and the ghosts</span>
+        <span class="n">num_cells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">)</span>
+        <span class="n">num_ghosts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="p">)</span>
+        <span class="n">fulllist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span>
+        <span class="n">num_full</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fulllist</span><span class="p">)</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_full</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fulllist</span><span class="p">):</span>
+            <span class="n">arr</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">pos</span>
+        
+        <span class="c">#get the Delaunay construction</span>
+        <span class="n">tri</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+
+        <span class="c">#add the links</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="n">tri</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+            <span class="n">cellone</span> <span class="o">=</span> <span class="n">fulllist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">celltwo</span> <span class="o">=</span> <span class="n">fulllist</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">cellthree</span> <span class="o">=</span> <span class="n">fulllist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">one</span><span class="p">,</span><span class="n">two</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_ghosts</span><span class="p">(</span><span class="n">cellone</span><span class="p">,</span><span class="n">celltwo</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">one</span><span class="p">,</span><span class="n">two</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_ghosts</span><span class="p">(</span><span class="n">celltwo</span><span class="p">,</span><span class="n">cellthree</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">one</span><span class="p">,</span><span class="n">two</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_ghosts</span><span class="p">(</span><span class="n">cellthree</span><span class="p">,</span><span class="n">cellone</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+        </div>
+<div class="viewcode-block" id="CancerSim.add_cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.add_cell">[docs]</a>    <span class="k">def</span> <span class="nf">add_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cell</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span> <span class="o">+=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="CancerSim.add_bond"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.add_bond">[docs]</a>    <span class="k">def</span> <span class="nf">add_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Add a bond between cells one and two &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">add_link</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">,</span><span class="n">xsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">XSIZE</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CancerSim.remove_bond"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.remove_bond">[docs]</a>    <span class="k">def</span> <span class="nf">remove_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Remove a bond between cells one and two &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">remove_link</span><span class="p">(</span><span class="n">one</span><span class="p">,</span><span class="n">two</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CancerSim.remove_cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.remove_cell">[docs]</a>    <span class="k">def</span> <span class="nf">remove_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cell</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Remove the cell: cell, and all bonds for that cell &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">remove_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CancerSim.get_neighbors"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.get_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">get_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cell</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the linked neighbor cells of cell &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CancerSim.add_cancer_cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.add_cancer_cell">[docs]</a>    <span class="k">def</span> <span class="nf">add_cancer_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">eps</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; randomly make a cell a cancer cell &quot;&quot;&quot;</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">eps</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cells</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cancer_cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cancer</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="o">.</span><span class="n">remove_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;No targets found at {} within radius {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="CancerSim.duplicate_cancer_cell"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.duplicate_cancer_cell">[docs]</a>    <span class="k">def</span> <span class="nf">duplicate_cancer_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cancer</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">disp_frac</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Duplicate the cancer cell: cancer &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cancer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cancer</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cancer_cells</span><span class="p">)</span>
+        
+        <span class="c">#need to choose a random direction and do the relaxation</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">disp_frac</span> <span class="o">*</span> <span class="n">cancer</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">L</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">sp</span><span class="o">.</span><span class="n">pi</span>
+
+        <span class="n">disp</span> <span class="o">=</span> <span class="n">L</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span><span class="n">sp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)])</span>
+
+        <span class="n">newcell</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">(</span><span class="n">cancer</span><span class="o">.</span><span class="n">pos</span> <span class="o">+</span> <span class="n">disp</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cancer</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells</span><span class="p">)</span>
+        <span class="n">cancer</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">cancer</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="n">disp</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancer_cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newcell</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span><span class="n">newcell</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        neighs = self.links.get_neighbors(cancer).copy()</span>
+
+<span class="sd">        </span>
+<span class="sd">        for neigh in neighs:</span>
+<span class="sd">            link_disp =  neigh.pos - cancer.pos</span>
+<span class="sd">            if sp.vdot(link_disp,disp) &gt;= 0:</span>
+<span class="sd">                #remove old link, create new one.</span>
+<span class="sd">                self.links.remove_link(cancer,neigh)</span>
+<span class="sd">                self.links.add_link(newcell,neigh)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c">#self.links.add_link(newcell,cancer)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updated</span> <span class="o">=</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="CancerSim.time_step"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.time_step">[docs]</a>    <span class="k">def</span> <span class="nf">time_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duplicate_cancer_cell</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_cells</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="CancerSim.plot_cells"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.plot_cells">[docs]</a>    <span class="k">def</span> <span class="nf">plot_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">clf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">fignum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">ghosts</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot the current configuration &quot;&quot;&quot;</span>
+        <span class="n">pos_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_arr</span><span class="p">()</span>
+
+        <span class="n">py</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fignum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clf</span><span class="p">:</span>
+            <span class="n">py</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+             
+        <span class="n">py</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pos_arr</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">pos_arr</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">c</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">color</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">],</span>
+                        <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                        <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                        <span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ghosts</span><span class="p">:</span>
+            <span class="n">ghost_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ghost_pos_arr</span><span class="p">()</span>
+            <span class="n">py</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">ghost_arr</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">ghost_arr</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">original</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">color</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ghosts</span><span class="p">],</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+                        <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                        <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
+                        <span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">py</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">&#39;equal&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CancerSim.plot_links"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.plot_links">[docs]</a>    <span class="k">def</span> <span class="nf">plot_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">clf</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">cutoff</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">fignum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">ghosts</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot the links between cells &quot;&quot;&quot;</span>  
+        <span class="k">if</span> <span class="n">cutoff</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XSIZE</span><span class="o">/</span><span class="mf">2.</span>          
+        <span class="n">py</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fignum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clf</span><span class="p">:</span>
+            <span class="n">py</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">link</span><span class="o">.</span><span class="n">extension</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="n">link</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">link</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">pos</span> <span class="p">])</span>
+                <span class="n">py</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">c</span><span class="o">=</span><span class="n">py</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">(</span> <span class="nb">min</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">energy</span><span class="o">*</span><span class="mf">30.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="p">),</span>
+                            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+                            <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">)</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CancerSim.forces"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.forces">[docs]</a>    <span class="k">def</span> <span class="nf">forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; get the forces between cells, as array &quot;&quot;&quot;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_arr</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">force_arr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="p">:</span>
+            <span class="n">force</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">force</span>
+            <span class="n">force_arr</span><span class="p">[</span><span class="n">link</span><span class="o">.</span><span class="n">one</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force</span>
+            <span class="n">force_arr</span><span class="p">[</span><span class="n">link</span><span class="o">.</span><span class="n">two</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force</span>
+
+
+        <span class="n">kdtree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kdtree</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">query_pairs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">*</span><span class="mf">1.0</span><span class="p">):</span>
+            <span class="n">disp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">disp</span><span class="p">)</span>
+            <span class="n">force</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">**</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">*</span> <span class="n">L</span> <span class="o">+</span> <span class="n">L</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span><span class="o">/</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">L</span><span class="o">**</span><span class="mi">6</span> <span class="p">)</span> <span class="o">*</span> <span class="n">disp</span>
+            <span class="n">force_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force</span>
+            <span class="n">force_arr</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force</span>
+
+        <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">force_arr</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="CancerSim.force_func"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.force_func">[docs]</a>    <span class="k">def</span> <span class="nf">force_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; the native force function between two points &quot;&quot;&quot;</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CancerSim.energy"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; get the energy of the current configuration &quot;&quot;&quot;</span>
+        <span class="n">tot_energy</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">links</span><span class="p">:</span>
+            <span class="n">tot_energy</span> <span class="o">+=</span> <span class="n">link</span><span class="o">.</span><span class="n">energy</span>
+        <span class="k">return</span> <span class="n">tot_energy</span>
+</div>
+<div class="viewcode-block" id="CancerSim.fire"><a class="viewcode-back" href="../../cancer.html#code.cancer.CancerSim.fire">[docs]</a>    <span class="k">def</span> <span class="nf">fire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">Nmin</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span><span class="n">finc</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span><span class="n">fdec</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">alphastart</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">fa</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span><span class="n">deltatmax</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span>
+            <span class="n">maxsteps</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Do a fire relaxation &quot;&quot;&quot;</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">alphastart</span>
+        <span class="n">deltat</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_arr</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_vel</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vel_arr</span><span class="p">()</span>
+
+        <span class="n">steps_since_negative</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">def</span> <span class="nf">norm_arr</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vec</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">def</span> <span class="nf">unitize_arr</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">((</span><span class="n">vec</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="n">norm</span><span class="p">(</span><span class="n">vec</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span><span class="n">sp</span><span class="o">.</span><span class="n">inf</span><span class="p">]]))</span>
+
+        <span class="n">step_num</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">print</span> <span class="s">&quot;Beginning FIRE Relaxation -- fmax={}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fmax</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="nb">max</span><span class="p">(</span><span class="n">norm_arr</span><span class="p">(</span><span class="n">forces</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">fmax</span> <span class="ow">and</span> <span class="n">step_num</span> <span class="o">&lt;</span> <span class="n">maxsteps</span><span class="p">:</span>
+            <span class="n">forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span>
+
+            <span class="n">power</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">forces</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s">&quot;Step: {}, max_force: {}, power: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step_num</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">norm_arr</span><span class="p">(</span><span class="n">forces</span><span class="p">)),</span> <span class="n">power</span><span class="p">)</span>
+
+            <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="n">v</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">norm_arr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">*</span><span class="n">unitize_arr</span><span class="p">(</span><span class="n">forces</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+            <span class="k">if</span> <span class="n">power</span><span class="o">&gt;</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">steps_since_negative</span> <span class="o">&gt;</span> <span class="n">Nmin</span><span class="p">:</span>
+                    <span class="n">deltat</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">deltat</span> <span class="o">*</span> <span class="n">finc</span><span class="p">,</span> <span class="n">deltatmax</span><span class="p">)</span>
+                    <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">*</span><span class="n">fa</span>
+                <span class="n">steps_since_negative</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">steps_since_negative</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="n">deltat</span> <span class="o">=</span> <span class="n">deltat</span> <span class="o">*</span> <span class="n">fdec</span>
+                <span class="n">v</span> <span class="o">*=</span> <span class="mf">0.</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="n">alphastart</span>
+
+            <span class="n">v</span> <span class="o">+=</span> <span class="n">forces</span><span class="o">*</span><span class="n">deltat</span>
+            <span class="n">pos</span> <span class="o">+=</span> <span class="n">v</span><span class="o">*</span><span class="n">deltat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="n">step_num</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_vel</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;Relaxation finished...&quot;</span>
+    </div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">CancerSim</span><span class="p">()</span>
+    <span class="n">Q</span><span class="o">.</span><span class="n">_triang_lattice</span><span class="p">()</span>
+    <span class="n">Q</span><span class="o">.</span><span class="n">delaunay</span><span class="p">()</span>
+    <span class="n">Q</span><span class="o">.</span><span class="n">_freeze_links</span><span class="p">()</span>
+
+    <span class="n">Q</span><span class="o">.</span><span class="n">add_cancer_cell</span><span class="p">([</span><span class="n">XSIZE</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">YSIZE</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">Q</span><span class="o">.</span><span class="n">plot_cells</span><span class="p">()</span>
+
+
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">Q</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO:  have links know about periodic boundary conditions (maybe)</span>
+<span class="sd">        freeze links (DONE)</span>
+<span class="sd">        Ghost cells need update method.  (DONE)</span>
+<span class="sd">        fire relaxation (DONE)</span>
+<span class="sd">        set and divide cancer cells (DONE)</span>
+
+<span class="sd">        long range forces (KDTree, but with periodic boundary conditions?)</span>
+<span class="sd">            just test both a position and its periodic image if it&#39;s near the edge (very good)</span>
+<span class="sd">        cache the link calcs</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../../index.html">CancerSim v0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Alex Alemi.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

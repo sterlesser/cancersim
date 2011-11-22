@@ -1,0 +1,17 @@
+This is where the CancerSim code and docs live.
+
+Code is in code directory
+Docs in docs
+
+Example code usage in test_sim.py
+
+TODO:
+    Clean up documentation
+    Try to speed up code through caching.
+    
+WISHLIST:
+    Fix the plotting routine to show cell radii
+    Fix the errant cell links across domain
+    Cache links (done ?)
+    cache KDTree ?
+    Play with potentials

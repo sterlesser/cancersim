@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cells &mdash; CancerSim v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CancerSim v0.1 documentation" href="index.html" />
+    <link rel="next" title="Helper Functions" href="helper.html" />
+    <link rel="prev" title="Links" href="links.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="helper.html" title="Helper Functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Links"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cells">
+<h1>Cells<a class="headerlink" href="#cells" title="Permalink to this headline">¶</a></h1>
+<p>Cancer cells are represented by the Cell class, each cell has a CellType</p>
+<div class="section" id="celltype-class">
+<h2>CellType Class<a class="headerlink" href="#celltype-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="code.cells.CellType">
+<em class="property">class </em><tt class="descclassname">code.cells.</tt><tt class="descname">CellType</tt><big>(</big><em>name</em>, <em>type_ind</em>, <em>k</em>, <em>L</em>, <em>color='b'</em><big>)</big><a class="reference internal" href="_modules/code/cells.html#CellType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cells.CellType" title="Permalink to this definition">¶</a></dt>
+<dd><p>A holder for some cell type information</p>
+<dl class="docutils">
+<dt>Initialization / Attributes:</dt>
+<dd><ul class="first last simple">
+<li>name : string name of cell type</li>
+<li>type_ind : an int for the cell type</li>
+<li>k : spring constant (float)</li>
+<li>L : natural length of bonds (float)</li>
+<li>color=&#8217;b&#8217; : set the color the plots</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="cell-class">
+<h2>Cell Class<a class="headerlink" href="#cell-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="code.cells.Cell">
+<em class="property">class </em><tt class="descclassname">code.cells.</tt><tt class="descname">Cell</tt><big>(</big><em>pos</em>, <em>cell_type</em>, <em>index=0</em><big>)</big><a class="reference internal" href="_modules/code/cells.html#Cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cells.Cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>A cell object</p>
+<dl class="docutils">
+<dt>Initialization / Attributes:</dt>
+<dd><ul class="first last simple">
+<li>pos: a position array</li>
+<li>type: a type declaration, instance of CellType class</li>
+<li>vel: a velocity arrays</li>
+<li>index: an integer index for finding the cell in a big position array</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="ghostcell-class">
+<h2>GhostCell Class<a class="headerlink" href="#ghostcell-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="code.cells.GhostCell">
+<em class="property">class </em><tt class="descclassname">code.cells.</tt><tt class="descname">GhostCell</tt><big>(</big><em>original</em>, <em>xsize</em>, <em>sign=1</em><big>)</big><a class="reference internal" href="_modules/code/cells.html#GhostCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cells.GhostCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>A ghost cell, which is used to implement periodic boundary conditions.
+A ghost cell is linked to its parent.</p>
+<dl class="docutils">
+<dt>Initialization:</dt>
+<dd><ul class="first last simple">
+<li>original: parent cell</li>
+<li>sign: either 1 or -1</li>
+<li>xsize: size of box, size of offset</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="code.cells.GhostCell.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/code/cells.html#GhostCell.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cells.GhostCell.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the position of the GhostCell based on the offset and sign</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Cells</a><ul>
+<li><a class="reference internal" href="#celltype-class">CellType Class</a></li>
+<li><a class="reference internal" href="#cell-class">Cell Class</a></li>
+<li><a class="reference internal" href="#ghostcell-class">GhostCell Class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="links.html"
+                        title="previous chapter">Links</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="helper.html"
+                        title="next chapter">Helper Functions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/cells.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="helper.html" title="Helper Functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Links"
+             >previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Alex Alemi.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

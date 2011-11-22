@@ -1,0 +1,71 @@
+Cancer Code
+=============
+
+Below is a skeleton of the code contained in the code.cancer.py file.  Below should be summaries of the contents, as well as links to the source itself.
+
+
+Cells
+------
+
+Cancer cells are represented by the Cell class, each cell has a CellType
+
+CellType Class
+^^^^^^^^^^^^^^
+
+.. autoclass:: code.cancer.CellType
+        :members:
+
+
+Cell Class
+^^^^^^^^^^
+
+.. autoclass:: code.cancer.Cell
+        :members:
+
+GhostCell Class
+^^^^^^^^^^^^^^^
+
+.. autoclass:: code.cancer.GhostCell
+        :members: update
+
+    
+    
+
+Links
+------
+
+I wrote a little code to facilitate the storage of links between cells
+
+
+Link Class
+^^^^^^^^^^^
+
+.. autoclass:: code.cancer.Link
+        :members:
+        
+Links Class
+^^^^^^^^^^^
+     
+.. autoclass:: code.cancer.Links
+        :members:
+        
+
+CancerSim Class
+-----------------
+
+The main cancer simulation class
+       
+        
+.. autoclass:: code.cancer.CancerSim
+        :members:
+        
+        
+Helper Functions
+-----------------
+
+There are a couple helper functions included
+
+.. autofunction:: code.cancer.unitize
+
+.. autofunction:: code.cancer.norm
+

@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cancer Code &mdash; CancerSim v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CancerSim v0.1 documentation" href="index.html" />
+    <link rel="next" title="Links" href="links.html" />
+    <link rel="prev" title="Simulation Summary" href="simulation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="links.html" title="Links"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation Summary"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cancer-code">
+<h1>Cancer Code<a class="headerlink" href="#cancer-code" title="Permalink to this headline">¶</a></h1>
+<p>Below is a skeleton of the code contained in the code.cancer.py file.  Below should be summaries of the contents, as well as links to the source itself.</p>
+<div class="section" id="cancersim-class">
+<h2>CancerSim Class<a class="headerlink" href="#cancersim-class" title="Permalink to this headline">¶</a></h2>
+<p>The main cancer simulation class</p>
+<dl class="class">
+<dt id="code.cancer.CancerSim">
+<em class="property">class </em><tt class="descclassname">code.cancer.</tt><tt class="descname">CancerSim</tt><big>(</big><em>boxsize=(20</em>, <em>20)</em>, <em>basal_height=10.0</em>, <em>seed=None</em>, <em>xi=2.0</em>, <em>a=0.1</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main Cancer Simulation Class.</p>
+<p>Creates an array of Cells, allows for the designation of cancer cells
+And the evolution of the cells thereafter.</p>
+<dl class="method">
+<dt id="code.cancer.CancerSim.add_bond">
+<tt class="descname">add_bond</tt><big>(</big><em>one</em>, <em>two</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.add_bond"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.add_bond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a bond between cells one and two</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.add_cancer_cell">
+<tt class="descname">add_cancer_cell</tt><big>(</big><em>x</em>, <em>r</em>, <em>eps=None</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.add_cancer_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.add_cancer_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>randomly make a cell a cancer cell</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.add_cell">
+<tt class="descname">add_cell</tt><big>(</big><em>cell</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.add_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.add_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the cell: cell</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.delaunay">
+<tt class="descname">delaunay</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.delaunay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.delaunay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delaunay routine, sets the initial links</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.duplicate_cancer_cell">
+<tt class="descname">duplicate_cancer_cell</tt><big>(</big><em>cancer=None</em>, <em>disp_frac=0.15</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.duplicate_cancer_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.duplicate_cancer_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicate the cancer cell: cancer</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="code.cancer.CancerSim.energy">
+<tt class="descname">energy</tt><a class="reference internal" href="_modules/code/cancer.html#CancerSim.energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the energy of the current configuration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.fire">
+<tt class="descname">fire</tt><big>(</big><em>fmax=0.1</em>, <em>Nmin=5.0</em>, <em>finc=1.1</em>, <em>fdec=0.5</em>, <em>alphastart=0.1</em>, <em>fa=0.99</em>, <em>deltatmax=10.0</em>, <em>maxsteps=100000</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a fire relaxation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.force_func">
+<tt class="descname">force_func</tt><big>(</big><em>cell1</em>, <em>cell2</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.force_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.force_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>the native force function between two positions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.force_func2">
+<tt class="descname">force_func2</tt><big>(</big><em>cell1</em>, <em>cell2</em><big>)</big><a class="headerlink" href="#code.cancer.CancerSim.force_func2" title="Permalink to this definition">¶</a></dt>
+<dd><p>the native force function between two positions, second attempt</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.force_func_hertz">
+<tt class="descname">force_func_hertz</tt><big>(</big><em>cell1</em>, <em>cell2</em><big>)</big><a class="headerlink" href="#code.cancer.CancerSim.force_func_hertz" title="Permalink to this definition">¶</a></dt>
+<dd><p>the Hertz force between two cells</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="code.cancer.CancerSim.forces">
+<tt class="descname">forces</tt><a class="reference internal" href="_modules/code/cancer.html#CancerSim.forces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the forces between cells, as array, both from links
+and from the native force_func</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.get_neighbors">
+<tt class="descname">get_neighbors</tt><big>(</big><em>cell</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.get_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the linked neighbor cells of cell</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.get_pos_arr">
+<tt class="descname">get_pos_arr</tt><big>(</big><em>force=False</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.get_pos_arr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.get_pos_arr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an array of all of the cell positions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.jiggle">
+<tt class="descname">jiggle</tt><big>(</big><em>sigma=0.1</em>, <em>ghosts=True</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.jiggle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.jiggle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Jiggle the atom positions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.plot_cells">
+<tt class="descname">plot_cells</tt><big>(</big><em>clf=True</em>, <em>fignum=1</em>, <em>ghosts=False</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.plot_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.plot_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the current configuration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.plot_links">
+<tt class="descname">plot_links</tt><big>(</big><em>clf=False</em>, <em>cutoff=None</em>, <em>fignum=1</em>, <em>ghosts=False</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.plot_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.plot_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the links between cells</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.plot_sized_cells">
+<tt class="descname">plot_sized_cells</tt><big>(</big><em>clf=True</em>, <em>fignum=1</em>, <em>ghosts=False</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#code.cancer.CancerSim.plot_sized_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the current configuration using circles</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.remove_bond">
+<tt class="descname">remove_bond</tt><big>(</big><em>one</em>, <em>two</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.remove_bond"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.remove_bond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a bond between cells one and two</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.remove_cell">
+<tt class="descname">remove_cell</tt><big>(</big><em>cell</em><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.remove_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.remove_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the cell: cell, and all bonds for that cell</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.cancer.CancerSim.time_step">
+<tt class="descname">time_step</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/code/cancer.html#CancerSim.time_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.cancer.CancerSim.time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a time step, duplicate a cancer cell,
+do a FIRE relaxation, and plot</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Cancer Code</a><ul>
+<li><a class="reference internal" href="#cancersim-class">CancerSim Class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="simulation.html"
+                        title="previous chapter">Simulation Summary</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="links.html"
+                        title="next chapter">Links</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/cancer.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="links.html" title="Links"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation Summary"
+             >previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Alex Alemi.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+
+We want to simulate cancer cells in the epidermis and dermis
+
+4 types of cells:
+    epidermal, cancer, boundary, dermal
+    
+They have links between them.
+
+Forces are springs with a short range interaction
+
+
+
+Have an array of all of the cell positions
+have a list of cell types
+have a dictionary of lists for the neighbor-list
+
+
+use ODEINT for the integration
+and scipy.spatial.Delanay for the initialization.
+
+
+NEW VERSION
+	TODO:
+		impliment cells and positions
+		store links.  

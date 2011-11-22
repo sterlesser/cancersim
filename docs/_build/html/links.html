@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Links &mdash; CancerSim v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="CancerSim v0.1 documentation" href="index.html" />
+    <link rel="next" title="Cells" href="cells.html" />
+    <link rel="prev" title="Cancer Code" href="cancer.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cells.html" title="Cells"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cancer.html" title="Cancer Code"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="links">
+<h1>Links<a class="headerlink" href="#links" title="Permalink to this headline">¶</a></h1>
+<p>I wrote a little code to facilitate the storage of links between cells</p>
+<div class="section" id="link-class">
+<h2>Link Class<a class="headerlink" href="#link-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="code.links.Link">
+<em class="property">class </em><tt class="descclassname">code.links.</tt><tt class="descname">Link</tt><big>(</big><em>one</em>, <em>two</em>, <em>L=None</em>, <em>k=None</em>, <em>xsize=20</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>A link object keeps a link between two cells.</p>
+<dl class="docutils">
+<dt>Initialization:</dt>
+<dd><ul class="first last simple">
+<li>one: cell one</li>
+<li>two: cell two</li>
+<li>L: resting length of link_disp</li>
+<li>k: strength of link_disp</li>
+<li>xsize: size of box (to handle periodic boundary conditions)</li>
+</ul>
+</dd>
+<dt>Properties:</dt>
+<dd><ul class="first last simple">
+<li>disp - displacement of spring</li>
+<li>extension - compute the current link extension</li>
+<li>energy - compute the current link energy</li>
+<li>force - force of spring</li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="code.links.Link.disp">
+<tt class="descname">disp</tt><a class="reference internal" href="_modules/code/links.html#Link.disp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Link.disp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displacement from one to two</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="code.links.Link.energy">
+<tt class="descname">energy</tt><a class="reference internal" href="_modules/code/links.html#Link.energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Link.energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the energy stored in a link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="code.links.Link.extension">
+<tt class="descname">extension</tt><a class="reference internal" href="_modules/code/links.html#Link.extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Link.extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current extension of the link</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="code.links.Link.force">
+<tt class="descname">force</tt><a class="reference internal" href="_modules/code/links.html#Link.force"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Link.force" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the force the link enacts</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="links-class">
+<h2>Links Class<a class="headerlink" href="#links-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="code.links.Links">
+<em class="property">class </em><tt class="descclassname">code.links.</tt><tt class="descname">Links</tt><a class="reference internal" href="_modules/code/links.html#Links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container for Links</p>
+<dl class="docutils">
+<dt>Main Attributes:</dt>
+<dd><ul class="first last simple">
+<li>data : holds links, a dictionary where for a pair of cells holds a pointer to the Link for those two cells</li>
+<li>neighbors : holds neighbor information, a dictionary that for each cell stores a set of its neighbors.</li>
+</ul>
+</dd>
+</dl>
+<p>This class basically a wrapper for the builtin dictionary, such that
+accessing its arguments is independent of order.</p>
+<dl class="method">
+<dt id="code.links.Links.add_link">
+<tt class="descname">add_link</tt><big>(</big><em>one</em>, <em>two</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Links.add_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links.add_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a link between cells one and two</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.links.Links.get_link">
+<tt class="descname">get_link</tt><big>(</big><em>one</em>, <em>two</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Links.get_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links.get_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the link between cells one and two, order independent</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.links.Links.get_neighbors">
+<tt class="descname">get_neighbors</tt><big>(</big><em>cell</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Links.get_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the neighbors of cell cell</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.links.Links.remove_cell">
+<tt class="descname">remove_cell</tt><big>(</big><em>cell</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Links.remove_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links.remove_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all references to a cell, both links and neighbors</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="code.links.Links.remove_link">
+<tt class="descname">remove_link</tt><big>(</big><em>one</em>, <em>two</em><big>)</big><a class="reference internal" href="_modules/code/links.html#Links.remove_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#code.links.Links.remove_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a link between cells one and two</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Links</a><ul>
+<li><a class="reference internal" href="#link-class">Link Class</a></li>
+<li><a class="reference internal" href="#links-class">Links Class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cancer.html"
+                        title="previous chapter">Cancer Code</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cells.html"
+                        title="next chapter">Cells</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/links.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="cells.html" title="Cells"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cancer.html" title="Cancer Code"
+             >previous</a> |</li>
+        <li><a href="index.html">CancerSim v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Alex Alemi.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
