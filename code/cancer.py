@@ -673,9 +673,9 @@ class CancerSim:
         def norm_arr(vec):
             return sp.sqrt(sp.sum(vec**2,1))
         def unitize_arr(vec):
-            return sp.nan_to_num(((vec.T)/norm_arr(vec)).T)
+            return nan_to_num(((vec.T)/norm_arr(vec)).T)
 
-        forces = sp.nan_to_num(sp.array([ [sp.inf,sp.inf]]))
+        forces = nan_to_num(sp.array([ [sp.inf,sp.inf]]))
 
         step_num = 0
 
@@ -699,7 +699,7 @@ class CancerSim:
             #                            max(norm_arr(forces)),
             #                             power, deltat)
 
-            v = sp.nan_to_num( (1.0 - alpha)*v + alpha*(norm_arr(v)*unitize_arr(forces).T).T )
+            v = nan_to_num( (1.0 - alpha)*v + alpha*(norm_arr(v)*unitize_arr(forces).T).T )
 
             if power>0.:
                 if steps_since_negative > Nmin:
