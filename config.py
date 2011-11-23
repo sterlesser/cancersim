@@ -26,7 +26,7 @@ config = {
 
 	'force_magnitude_basal': 0.10,
 	'force_cutoff': 2.0,
-	'force_cutoff_basal': 0.4,
+	'force_cutoff_basal': 0.5,
 	'jiggle_sigma': 0.1,
 
 	#First Cancer Cell

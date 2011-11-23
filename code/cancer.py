@@ -427,7 +427,7 @@ class CancerSim:
 
 
 
-    def duplicate_cancer_cell(self,cancer=None,disp_frac = 0.15):
+    def duplicate_cancer_cell(self,cancer=None,disp_frac = 0.01):
         """ Duplicate the cancer cell: cancer """
         if cancer is None:
             cancer = random.choice(self.cancer_cells)

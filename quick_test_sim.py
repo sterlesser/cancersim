@@ -3,9 +3,9 @@ import pylab as py
 
 from config import config
 
-config['XSIZE'] = 30
-config['YSIZE'] = 30
-config['basal_height'] = 15
+config['XSIZE'] = 10
+config['YSIZE'] = 10
+config['basal_height'] = 5
 config['first_cancer_cell_yoffset'] = 1.5
 
 
