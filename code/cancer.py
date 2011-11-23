@@ -9,7 +9,9 @@ import cPickle as pickle
 from scipy.spatial.distance import euclidean
 from math import pow
 from scipy.spatial import Delaunay
-from scipy.spatial import KDTree
+#from scipy.spatial import KDTree 
+from scipy.spatial import cKDTree
+from hybridKDTree import KDTree
 import random
 import time
 import pprint
@@ -17,6 +19,7 @@ import pprint
 #XSIZE = 20
 #YSIZE = 20
 
+from code.neighborlist import NeighborList
 
 from helper import norm, unitize
 import links, cells
@@ -30,7 +33,10 @@ base_logger.info('Inside the cancer.py module')
 ########################################################
 
 #try to speed things up a little bit
-from scipy import zeros_like, nan_to_num
+from scipy import zeros_like, nan_to_num, allclose
+
+
+from code.forcefunccelltypes import force_func_hertz, force_func_basal, norm
 
 
 class CancerSim:
@@ -61,14 +67,14 @@ class CancerSim:
         self.basalcutoff = config['force_cutoff_basal']
         self.basal_height = config['basal_height']
 
-
-
         sp.random.seed(self.seed)
         random.seed(self.seed)
 
 
         #KDTree
-        self._kdtree = None
+        #self._kdtree = None
+        #self._kdtree_cache_T = -1
+
 
         self._updated = True
         self.T = 0
@@ -94,6 +100,8 @@ class CancerSim:
         self.logger = base_logger.getChild('CancerSim')
         self.logger.info('Initializing CancerSim')
 
+        self.neighs = None
+
     def _setup(self):
 
         self._triang_lattice()
@@ -103,6 +111,7 @@ class CancerSim:
 
         self.add_cancer_cell([self.XSIZE/2., self.basal_height + self.config['first_cancer_cell_yoffset']],
                             self.config['first_cancer_cell_radius'])
+
 
     def _triang_lattice(self):
         """ Create a triangular grid of points """
@@ -193,13 +202,19 @@ class CancerSim:
             rad_arr[i] = cell.radius
         return rad_arr
 
-    def _get_kdtree(self,force=False):
+    def _get_kdtree(self,force=False,new=True):
         """ Generate a KDTree for the cells, 
             allows for efficient geometric neighbor computation """
+        #if new or self._kdtree_cache_T != self.T or self._updated:
         pos = self.get_pos_arr(force).copy()
-        self._kdtree = KDTree(pos)
+        _kdtree = KDTree(pos)
 
-        return self._kdtree
+        return _kdtree
+
+    def _get_ckdtree(self,force=False):
+        """ Generate a cKDTree """
+        pos = self.get_pos_arr(force).copy()
+        return cKDTree(pos)
 
     def _query_point(self,x,r,eps=None):
         """ Get all of the cell inds near point, with radius r """        
@@ -226,6 +241,7 @@ class CancerSim:
             pos[0] = pos[0]%self.XSIZE
             cell.pos = pos
         self._cell_arr = pos_arr
+        #self._updated = True
 
     def _update_vel(self,vel_arr):
         """ Update all of the cell velocities with an array """
@@ -254,6 +270,7 @@ class CancerSim:
         newpos = pos + sigma*(sigarr*randn.T).T
 
         self._update_pos(newpos)
+        self._updated = True
 
         if ghosts:
             self._update_ghosts()
@@ -365,7 +382,7 @@ class CancerSim:
         """ Add the cell: cell """
         self.cells.append(cell)
         self.num_cells += 1
-
+        self._updated = True
         self.logger.debug('Adding the cell {cell}'.format(cell=cell))
 
     def add_bond(self,one,two):
@@ -403,6 +420,7 @@ class CancerSim:
             cell.type = self.cancer
 
             self.logger.info('Added a cancer cell: {cell}'.format(cell=cell))
+            self._updated = True
 
         else:
             raise Exception("No targets found at {} within radius {}".format(x,r))
@@ -454,6 +472,8 @@ class CancerSim:
         self.duplicate_cancer_cell()
         self.fire()
         self.plot_sized_cells()
+        self.T += 1
+
 
 
     def plot_cells(self,clf=True,fignum=1,ghosts=False,*args,**kwargs):
@@ -541,6 +561,37 @@ class CancerSim:
                                 *args, **kwargs )
 
     
+    def _get_pairs(self):
+        kdtree = self._get_kdtree(force=True)
+        return kdtree.query_pairs(self.xi*1.0)
+
+    def _get_cpairs(self,num=100):
+        pos = self.get_pos_arr(force=True)
+        ckdtree = self._get_ckdtree(force=False)
+        ds,neighs = ckdtree.query(pos,num,distance_upper_bound=self.xi)
+
+        pairs = set()
+        N = len(neighs)
+        for (i,j),k in sp.ndenumerate(neighs):
+        #    if cmp(i,k) < 1:
+        #        pairs.add((i,k))
+        #    else:
+        #        pairs.add((k,i))
+            if k < N and (i,k) not in pairs and (k,i) not in pairs:
+                pairs.add((i,k))
+
+        return pairs
+
+    def _get_npairs(self):
+        if self.neighs is None:
+            self.neighs = NeighborList([self.xi]*self.num_cells)
+        
+        self.neighs.update(self)
+
+        return ((i,j) for i in range(self.num_cells) for j in self.neighs.get_neighbors(i) )
+
+
+        
 
     @property
     def forces(self):
@@ -558,10 +609,10 @@ class CancerSim:
             force_arr[link.two.index] -= force
 
 
-        kdtree = self._get_kdtree(force=True)
-        for i,j in kdtree.query_pairs(self.xi*1.0):
+        #kdtree = self._get_kdtree(force=True)
+        for i,j in self._get_npairs(): #kdtree.query_pairs(self.xi*1.0):
             
-            force = self.force_func_celltypes(self.cells[i], self.cells[j] )
+            force = self.force_func_celltypes_cython(self.cells[i], self.cells[j] )
             #disp = self.cells[i].pos - self.cells[j].pos
             #L = norm(disp)
             #force = 2 * self.a**4 * ( 2 * self.xi**2 - 3 * self.xi * L + L**2 )/( self.xi**2 * L**6 ) * disp
@@ -634,6 +685,27 @@ class CancerSim:
             #We have some other situation
             if delta > 0:
                 force = math.sqrt(r1*r2/(r1+r2)) * self.a * delta**1.5*disp/mod_disp
+
+        return force
+
+    def force_func_celltypes_cython(self,cell1,cell2):
+        """ Try to case out the cell types """
+
+        x1 = cell1.pos
+        x2 = cell2.pos
+
+
+        if cell1.type==self.basal and cell2.type==self.basal:
+            #We have two basal cells
+            force = 0.0
+        elif cell1.type==self.basal or cell2.type==self.basal:
+            #We have one basal cell
+            force = force_func_basal(x1,x2,self.basalstrength,self.XSIZE)
+        else:
+            #We have some other situation
+            r1 = cell1.radius
+            r2 = cell2.radius
+            force = force_func_hertz(x1,x2,r1,r2,self.a,self.XSIZE)
 
         return force
 
@@ -737,8 +809,20 @@ class CancerSim:
     def save(self,filename):
         self.logger.info("SAVING state to {}".format(filename))
         with open(filename,'w') as f:
-            pickle.dump( (self.config, self.cells, self.links ), f )
+            pickle.dump( (self.config, self.cells, self.links, self._ghosts, self.T ), f )
 
+
+
+    def vmd_out(self,filename):
+        """ Write a VMD compatible file to filename """
+        with open(filename,'w') as f:
+            
+            positions = self.get_pos_arr(force=True)
+
+            formatstring  = "{color} {x} {y} {z}\n"
+
+            for ind,row in enumerate(positions):
+                f.write(formatstring.format(x=row[0], y=row[1], z=0, color=self.cells[ind].type.type_ind))
 
 
     def plot_forces(self,factor=5):
@@ -748,13 +832,31 @@ class CancerSim:
         py.quiver(X,Y,FX,FY,scale=factor)
 
 
+    #Some code for ASE neighborlist functionality
+    def get_positions(self):
+        return sp.hstack(( self.get_pos_arr(), sp.zeros((self.num_cells,1)) ) )
+
+    def get_pbc(self):
+        return sp.array([True,False,False])
+    
+    def get_cell(self):
+        return sp.array([[self.XSIZE,0,0],[0,self.YSIZE,0],[0,0,1]])
+
+    def __len__(self):
+        return self.num_cells
+
+
 
 def load_from_file(filename):
     with open(filename,'r') as f:
-        config, cells, links = pickle.load(f)
+        config, cells, links, ghosts, T = pickle.load(f)
     Q = CancerSim(config)
     Q.cells = cells
+    Q.ghosts = ghosts
+    Q.T = T
     Q.links = links
+    Q.cancer_cells = [cell for cell in cells if cell.type.name == "Cancer"]
+    Q.num_cells = len(Q.cells)
     return Q
 
 

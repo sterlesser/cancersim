@@ -89,6 +89,14 @@ class Link(object):
     @property
     def disp(self):
         """ Displacement from one to two """
+        disp = self.one.pos - self.two.pos
+        if norm(disp) > self.xsize/2:
+            disp = self.one.pos + self.offset - self.two.pos
+        return disp
+
+    @property
+    def disp_old(self):
+        """ Displacement from one to two """
         direct = self.one.pos - self.two.pos
         around = self.one.pos + self.offset -self.two.pos
         if norm(direct) <= norm(around):
@@ -122,6 +130,8 @@ class Link(object):
     @property
     def force(self):
         """ Get the force the link enacts """
+        if self.broken:
+            return 0
         if self.calculation_necessary:
             ext = self.extension
             disp = self.disp
