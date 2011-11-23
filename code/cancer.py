@@ -36,7 +36,7 @@ base_logger.info('Inside the cancer.py module')
 from scipy import zeros_like, nan_to_num, allclose
 
 
-from code.forcefunccelltypes import force_func_hertz, force_func_basal, norm
+from code.forcefunccelltypes import force_func_hertz, force_func_basal, norm, disp_func
 
 
 class CancerSim:
@@ -612,7 +612,7 @@ class CancerSim:
         #kdtree = self._get_kdtree(force=True)
         for i,j in self._get_npairs(): #kdtree.query_pairs(self.xi*1.0):
             
-            force = self.force_func_celltypes_cython(self.cells[i], self.cells[j] )
+            force = self.force_func_celltypes(self.cells[i], self.cells[j] )
             #disp = self.cells[i].pos - self.cells[j].pos
             #L = norm(disp)
             #force = 2 * self.a**4 * ( 2 * self.xi**2 - 3 * self.xi * L + L**2 )/( self.xi**2 * L**6 ) * disp
@@ -667,11 +667,10 @@ class CancerSim:
 
         x1 = cell1.pos
         x2 = cell2.pos
-        r1 = cell1.radius
-        r2 = cell2.radius
-        disp = x1 - x2
+
+        #use the Cython dispfunc
+        disp = disp_func(x1,x2,self.XSIZE)
         mod_disp = norm(disp)
-        delta=(r1+r2)-mod_disp
         force = 0.0
 
         if cell1.type==self.basal and cell2.type==self.basal:
@@ -683,6 +682,11 @@ class CancerSim:
                 force = 2 * self.basalstrength**4 * ( 2 * self.basalcutoff**2 - 3 * self.basalcutoff * mod_disp + mod_disp**2 )/( self.basalcutoff**2 * mod_disp**6 ) * disp
         else:
             #We have some other situation
+
+            r1 = cell1.radius
+            r2 = cell2.radius
+            delta=(r1+r2)-mod_disp
+
             if delta > 0:
                 force = math.sqrt(r1*r2/(r1+r2)) * self.a * delta**1.5*disp/mod_disp
 
@@ -708,6 +712,23 @@ class CancerSim:
             force = force_func_hertz(x1,x2,r1,r2,self.a,self.XSIZE)
 
         return force
+
+
+    def disp_func(self,x1,x2):
+        disp1 = x1 - x2
+        disp2 = x1 + self.XSIZE - x2
+        disp3 = x1 - self.XSIZE - x2
+
+        norm1 = norm(disp1)
+        norm2 = norm(disp2)
+        norm3 = norm(disp3)
+
+        if norm1 <= norm2 and norm1 <= norm3:
+            return disp1
+        elif norm2 <= norm1 and norm2 <= norm3:
+            return disp2
+        else:
+            return disp3
 
     @property
     def energy(self):

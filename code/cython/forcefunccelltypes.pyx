@@ -25,6 +25,9 @@ def disp_func(np.ndarray[dtype_t, ndim=1] x1,
     cdef float norm1, norm2, norm3
     norm1 = norm(disp1)
 
+    if norm1 < 3.0:
+        return disp1
+
     disp2 = x1 + XSIZE - x2
     norm2 = norm(disp2)
 
